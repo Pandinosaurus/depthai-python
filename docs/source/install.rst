@@ -23,6 +23,7 @@ Windows 10               :ref:`Platform dependencies <Windows 10>`      `Discord
 macOS                    :ref:`Platform dependencies <macOS>`           `Discord <https://discord.com/channels/790680891252932659/798283911989690368>`__
 Ubuntu & Jetson/Xavier   :ref:`Platform dependencies <Ubuntu>`          `Discord <https://discord.com/channels/790680891252932659/798302162160451594>`__
 Raspberry Pi OS          :ref:`Platform dependencies <Raspberry Pi OS>` `Discord <https://discord.com/channels/790680891252932659/798302708070350859>`__
+Jestson Nano             :ref:`Platform dependencies <Jetson Nano>`     `Discord <https://discord.com/channels/790680891252932659/795742008119132250>`__
 ======================== ============================================== ================================================================================
 
 And the following platforms are also supported by a combination of the community and Luxonis.
@@ -84,6 +85,96 @@ Raspberry Pi OS
   
     sudo curl -fL http://docs.luxonis.com/_static/install_dependencies.sh | bash
 
+
+Jetson Nano
+***********
+
+To install DepthAI on Jetson Nano, perform the following steps, after completing a fresh install and setup. On the first log in, 
+**do not** immediately run updates.
+
+This first step is optional: go to the *Software* (App Store) and delete the apps or software that you probably will not use. 
+
+Open a terminal window and run the following commands:
+  
+  .. code-block:: bash
+
+    sudo apt update && sudo apt upgrade
+    sudo reboot now
+
+Change the size of your SWAP. These instructions come from the `Getting Started with AI on Jetson Nano <https://developer.nvidia.com/embedded/learn/jetson-ai-certification-programs>`__ from nvidia:
+
+  .. code-block:: bash
+
+    # Disable ZRAM:
+    sudo systemctl disable nvzramconfig
+    # Create 4GB swap file
+    sudo fallocate -l 4G /mnt/4GB.swap
+    sudo chmod 600 /mnt/4GB.swap
+    sudo mkswap /mnt/4GB.swap
+
+If you have an issue with the final command, you can try the following:
+
+    .. code-block:: bash
+
+      sudo vi /etc/fstab
+
+      # Add this line at the bottom of the file
+      /mnt/4GB.swap swap swap defaults 0 0
+
+      # Reboot 
+      sudo reboot now
+
+The next step is to install :code:`pip` and :code:`python3`:
+
+  .. code-block:: bash
+  
+    sudo -H apt install -y python3-pip
+
+After that, install and set up virtual environment:
+
+  .. code-block:: bash
+
+    sudo -H pip3 install virtualenv virtualenvwrapper
+
+Add following lines to the bash script:
+
+  .. code-block:: bash
+
+    sudo vi ~/.bashrc
+
+    # Virtual Env Wrapper Configuration
+    export WORKON_HOME=$HOME/.virtualenvs
+    export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+    source /usr/local/bin/virtualenvwrapper.sh
+
+Save and reload the script by running the command :code:`source ~/.bashrc`. Then create a virtual environment (in this example it's called :code:`depthAI`).
+  
+  .. code-block:: bash
+
+    mkvirtualenv depthAI -p python3
+
+
+**Note!** Before installing :code:`depthai`, make sure you're in the virtual environment.
+
+  .. code-block:: bash
+
+    #Download and install the dependency package
+    sudo wget-qO- http://docs.luxonis.com/_static/install_dependencies.sh | bash
+
+    #Clone github repository
+    git clone https://github.com/luxonis/depthai-python.git
+    cd depthai-python
+
+Last step is to edit :code:`.bashrc` with the line:
+
+  .. code-block:: bash
+
+    echo "export OPENBLAS_CORETYPE=AMRV8" >> ~/.bashrc
+
+
+Navigate to the folder with :code:`depthai` examples folder, run :code:`python install_requirements.py` and then run :code:`python 01_rgb_preview.py`.
+
+Solution provided by `iacisme <https://github.com/iacisme>`__ via our `Discord <https://discord.com/channels/790680891252932659/795742008119132250>`__ channel.
 
 openSUSE
 ********
@@ -153,8 +244,8 @@ Kernel Virtual Machine
 To access the OAK-D camera in the `Kernel Virtual Machine <https://www.linux-kvm.org/page/Main_Page>`__, there is a need to attach and detach USB 
 devices on the fly when the host machine detects changes in the USB bus.
 
-OAK-D camera changes the USB device type when it is used by DepthAI API. This happens in backgound when the camera is used natively. 
-But when the camera is used in a virtual environment the situation is different. 
+OAK-D camera changes the USB device type when it is used by DepthAI API. This happens in backgound when the camera is used natively.
+But when the camera is used in a virtual environment the situation is different.
 
 On your host machine, use the following code:
 
@@ -164,7 +255,7 @@ On your host machine, use the following code:
   SUBSYSTEM=="usb", ACTION=="remove", ENV{PRODUCT}=="3e7/2485/1", ENV{DEVTYPE}=="usb_device", MODE="0666", RUN+="/usr/local/bin/movidius_usb_hotplug.sh depthai-vm"
   SUBSYSTEM=="usb", ACTION=="remove", ENV{PRODUCT}=="3e7/f63b/100", ENV{DEVTYPE}=="usb_device", MODE="0666", RUN+="/usr/local/bin/movidius_usb_hotplug.sh depthai-vm"
 
-The script that the udev rule is calling (movidius_usb_hotplug.sh) should then attach/detach the USB device to the virtual machine. 
+The script that the udev rule is calling (movidius_usb_hotplug.sh) should then attach/detach the USB device to the virtual machine.
 In this case we need to call :code:`virsh` command. For example, the script could do the following:
 
 .. code-block::
@@ -200,10 +291,10 @@ In this case we need to call :code:`virsh` command. For example, the script coul
   exit 0
 
 
-Note that when the device is disconnected from the USB bus, some udev environmental variables are not available (:code:`ID_VENDOR_ID` or :code:`ID_MODEL_ID`), 
+Note that when the device is disconnected from the USB bus, some udev environmental variables are not available (:code:`ID_VENDOR_ID` or :code:`ID_MODEL_ID`),
 that is why you need to use :code:`PRODUCT` environmental variable to identify which device has been disconnected.
 
-The virtual machine where DepthAI API application is running should have defined a udev rules that identify the OAK-D camera. 
+The virtual machine where DepthAI API application is running should have defined a udev rules that identify the OAK-D camera.
 The udev rule is decribed `here <https://docs.luxonis.com/en/latest/pages/faq/#does-depthai-work-on-the-nvidia-jetson-series>`__
 
 Solution provided by `Manuel Segarra-Abad <https://github.com/maseabunikie>`__
@@ -303,7 +394,7 @@ tools/environments on your system.
 Using a virtual environment (or system-wide, if you prefer), run the following to install the requirements for this example repository:
 
 .. code-block:: bash
-  
+
   cd examples
   python3 install_requirements.py
 
