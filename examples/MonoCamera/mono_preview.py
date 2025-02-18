@@ -16,9 +16,9 @@ xoutLeft.setStreamName('left')
 xoutRight.setStreamName('right')
 
 # Properties
-monoLeft.setBoardSocket(dai.CameraBoardSocket.LEFT)
+monoLeft.setCamera("left")
 monoLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_720_P)
-monoRight.setBoardSocket(dai.CameraBoardSocket.RIGHT)
+monoRight.setCamera("right")
 monoRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_720_P)
 
 # Linking
@@ -33,7 +33,7 @@ with dai.Device(pipeline) as device:
     qRight = device.getOutputQueue(name="right", maxSize=4, blocking=False)
 
     while True:
-        # Instead of get (blocking), we use tryGet (nonblocking) which will return the available data or None otherwise
+        # Instead of get (blocking), we use tryGet (non-blocking) which will return the available data or None otherwise
         inLeft = qLeft.tryGet()
         inRight = qRight.tryGet()
 

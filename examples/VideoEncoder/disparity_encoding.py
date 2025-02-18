@@ -10,15 +10,15 @@ pipeline = dai.Pipeline()
 # Create left/right mono cameras for Stereo depth
 monoLeft = pipeline.create(dai.node.MonoCamera)
 monoLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-monoLeft.setBoardSocket(dai.CameraBoardSocket.LEFT)
+monoLeft.setCamera("left")
 
 monoRight = pipeline.create(dai.node.MonoCamera)
 monoRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-monoRight.setBoardSocket(dai.CameraBoardSocket.RIGHT)
+monoRight.setCamera("right")
 
 # Create a node that will produce the depth map
 depth = pipeline.create(dai.node.StereoDepth)
-depth.initialConfig.setConfidenceThreshold(245)
+depth.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
 depth.initialConfig.setMedianFilter(dai.MedianFilter.KERNEL_7x7)
 depth.setLeftRightCheck(False)
 depth.setExtendedDisparity(False)
